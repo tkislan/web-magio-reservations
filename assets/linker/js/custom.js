@@ -6,7 +6,7 @@ console.log(tomorrow);
 $("#datetimepicker").datetimepicker({
   pickerPosition: 'bottom-left',
   todayBtn: true,
-  format: "dd MM yyyy - h",
+  format: "dd.mm.yyyy hh:00",
   minView: 1,
   weekStart: 1,
   startDate: new Date()

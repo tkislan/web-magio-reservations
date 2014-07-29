@@ -1,4 +1,21 @@
 <div class="jumbotron">
+  <% if (req.session.flash && req.session.flash.error) { %>
+    <div class="alert alert-danger alert-dismissible" role="alert"><%=req.flash('error')%></div>
+  <% } %>
+  <% if (req.session.flash && req.session.flash.ok) { %>
+    <div class="alert alert-success alert-dismissible" role="alert"><%=req.flash('ok')%></div>
+    <% if (req.session.reservation) { %>
+        <form action="/unreserve" id="reserve" class="form-unreserve" method="post">
+            <input type="text" class="hide" name="username" value="<%=req.session.reservation.username%>" >
+            <input type="password" class="hide" name="password" value="<%=req.session.reservation.password%>" >
+            <input type="text" class="hide" name="court" value="<%=req.session.reservation.court%>" >
+            <input type="text" class="hide" name="date" value="<%=req.session.reservation.date%>" >
+            <input type="text" class="hide" name="hour" value="<%=req.session.reservation.hour%>" >
+            <input type="submit" class="btn btn-lg btn-primary btn-block" value="Tak uz to nechcem, zrus to"/>
+        </form>
+    <% } %>
+  <% } %>
+
   <form action="/reserve" id="reserve" class="form-reserve" method="post">
     <h2 class="form-reserve-heading">Ojebavacske rezervacie</h2>
 
@@ -8,7 +25,7 @@
     <br />
 
     <div class='input-group date' id='datetimepicker'>
-        <input type='text' class="form-control" />
+        <input name="time" type='text' class="form-control" />
         <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
         </span>
     </div>

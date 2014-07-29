@@ -39,6 +39,11 @@ module.exports.routes = {
   'post /reserve': {
     controller: 'ReserverController',
     action: 'reserve'
+  },
+
+  'post /unreserve': {
+    controller: 'ReserverController',
+    action: 'unreserve'
   }
 
   /*
