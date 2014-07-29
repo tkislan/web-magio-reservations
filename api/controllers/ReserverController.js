@@ -155,50 +155,12 @@ module.exports = {
         res.redirect('/');
       });
     });
-
-    // request.post({
-    //   url: 'http://magioplaz.zoznam.sk/rezervacie/authenticate',
-    //   form: {
-    //     username: req.param('username'),
-    //     password: req.param('password')
-    //   },
-    //   jar: cookieJar
-    // }, function(err, httpRes, body) {
-    //   if (err) {
-    //     console.log(err);
-    //     req.flash('error', 'Nepodarilo sa prihlasit');
-    //     return res.redirect('/');
-    //   }
-
-    //   var resBody = JSON.parse(body);
-
-    //   if (resBody.errorCode) {
-    //     req.flash('error', resBody.errorMessage ? resBody.errorMessage : 'Nepodarilo sa prihlasit');
-    //     return res.redirect('/');
-    //   }
-
-      // reserveCourt(cookieJar, courtOne, requestDate, match[4], function(err, courtNumber) {
-      //   if (err) {
-      //     console.log(err);
-      //     req.flash('error', err);
-      //     return res.redirect('/');
-      //   }
-
-      //   req.flash('ok', 'Nech sa paci, mas rezervovane ihrisko ' + (courtNumber - 40));
-      //   req.session.reservation = {
-      //     username: req.param('username'),
-      //     password: req.param('password'),
-      //     court: courtNumber,
-      //     date: requestDate,
-      //     hour: match[4]
-      //   }
-      //   res.redirect('/');
-      // });
-    // });
   },
 
   unreserve: function(req, res, next) {
     var cookieJar = request.jar();
+
+    req.session.reservation = null;
 
     login(cookieJar, req.param('username'), req.param('password'), function(err) {
       if (err) {
