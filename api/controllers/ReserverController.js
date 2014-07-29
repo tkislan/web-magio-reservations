@@ -133,7 +133,7 @@ module.exports = {
 
     login(cookieJar, req.param('username'), req.param('password'), function(err) {
       if (err) {
-        req.flas('error', err);
+        req.flash('error', err);
         return res.redirect('/');
       }
 
