@@ -605,7 +605,8 @@
 
 			html = [];
 			var txt = '', meridian = '', meridianOld = '';
-			for (var i = 0; i < 24; i++) {
+			// for (var i = 0; i < 24; i++) {
+			for (var i = 9; i < 22; i++) {
 				var actual = UTCDate(year, month, dayMonth, i);
 				clsName = '';
 				// We want the previous hour for the startDate
