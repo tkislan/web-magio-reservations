@@ -20,11 +20,8 @@ var courtTwo = 42;
 
 var reservationUrlTemplate = 'http://magioplaz.zoznam.sk/rezervacie/rezervuj/%s/%s/%s?%s';
 
-// http://magioplaz.zoznam.sk/rezervacie/odrezervuj/42/2014-07-30/9?1406662387160
 var unReservationUrlTemplate = 'http://magioplaz.zoznam.sk/rezervacie/odrezervuj/%s/%s/%s?%s';
 
-// var cookieJar = require('request').jar();
-// var request = require('request').defaults({ jar: cookieJar });
 var request = require('request');
 var util = require('util');
 
@@ -39,15 +36,12 @@ function login(cookieJar, username, password, cb) {
   }, function(err, httpRes, body) {
     if (err) {
       console.log(err);
-      // req.flash('error', 'Nepodarilo sa prihlasit');
       return cb('Nepodarilo sa prihlasit');
     }
 
     var resBody = JSON.parse(body);
 
     if (resBody.errorCode) {
-      // req.flash('error', resBody.errorMessage ? resBody.errorMessage : 'Nepodarilo sa prihlasit');
-      // return res.redirect('/');
       return cb(resBody.errorMessage ? resBody.errorMessage : 'Nepodarilo sa prihlasit');
     }
 
@@ -72,7 +66,7 @@ function reserveCourt(cookieJar, court, date, hour, cb) {
 
     if (resData.errorCode) {
       if (resData.errorCode === 7) {
-        if (court === courtOne) return reserveCourt(cookieJar, courtTwo, date, hour, cb);
+        if (court === courtTwo) return reserveCourt(cookieJar, courtOne, date, hour, cb);
       }
 
       return resData.errorMessage ? cb(resData.errorMessage) : cb('Nepodarilo sa rezervovat, a nikto uz nezisti ze preco');
@@ -137,7 +131,7 @@ module.exports = {
         return res.redirect('/');
       }
 
-      reserveCourt(cookieJar, courtOne, requestDate, match[4], function(err, courtNumber) {
+      reserveCourt(cookieJar, courtTwo, requestDate, match[4], function(err, courtNumber) {
         if (err) {
           console.log(err);
           req.flash('error', err);
