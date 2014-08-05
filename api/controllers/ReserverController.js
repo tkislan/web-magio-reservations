@@ -19,11 +19,50 @@ var courtOne = 41;
 var courtTwo = 42;
 
 var reservationUrlTemplate = 'http://magioplaz.zoznam.sk/rezervacie/rezervuj/%s/%s/%s?%s';
-
 var unReservationUrlTemplate = 'http://magioplaz.zoznam.sk/rezervacie/odrezervuj/%s/%s/%s?%s';
+var getReservationsUrlTemplate = 'http://magioplaz.zoznam.sk/rezervacie/ihrisko/%s/%s/%s?%s';
 
 var request = require('request');
 var util = require('util');
+
+function checkMyReservation(cookieJar, court, date, hour, cb) {
+  sails.log('Checking reservations for court ' + (court - 40));
+
+  request.get({
+    url: util.format(getReservationsUrlTemplate, court, date, date, new Date().getTime()),
+    jar: cookieJar
+  }, function(err, res, body) {
+    if (err) {
+      sails.log.error(err);
+      return cb(false);
+    }
+
+    resData = JSON.parse(body);
+
+    var termin = date + ' ' + (hour < 10 ? '0' : '') + hour + ':00:00';
+    sails.log(termin);
+
+    for (var i = 0; i < resData.length; i++) {
+      if (resData[i].termin === termin && resData[i].yourOwn) {
+        return cb(true);
+      }
+    }
+
+    cb(false);
+  });
+}
+
+function checkMyReservations(cookieJar, date, hour, cb) {
+  checkMyReservation(cookieJar, courtOne, date, hour, function(myReservation) {
+    if (myReservation) return cb(courtOne);
+
+    checkMyReservation(cookieJar, courtTwo, date, hour, function(myReservation) {
+      if (myReservation) return cb(courtTwo);
+
+      cb();
+    });
+  });
+}
 
 function login(cookieJar, username, password, cb) {
   request.post({
@@ -35,7 +74,7 @@ function login(cookieJar, username, password, cb) {
     jar: cookieJar
   }, function(err, httpRes, body) {
     if (err) {
-      console.log(err);
+      sails.log.error(err);
       return cb('Nepodarilo sa prihlasit');
     }
 
@@ -50,6 +89,8 @@ function login(cookieJar, username, password, cb) {
 }
 
 function reserveCourt(cookieJar, court, date, hour, cb) {
+  sails.log('Reserving court ' + court + ' on ' + date + ' at ' + hour + ' hour');
+
   request.post({
     url: util.format(reservationUrlTemplate, court, date, hour, new Date().getTime()),
     form: {
@@ -58,7 +99,7 @@ function reserveCourt(cookieJar, court, date, hour, cb) {
     jar: cookieJar
   }, function(err, res, body) {
     if (err) {
-      console.log(err);
+      sails.log.error(err);
       return cb(err);
     }
 
@@ -69,7 +110,14 @@ function reserveCourt(cookieJar, court, date, hour, cb) {
         if (court === courtTwo) return reserveCourt(cookieJar, courtOne, date, hour, cb);
       }
 
-      return resData.errorMessage ? cb(resData.errorMessage) : cb('Nepodarilo sa rezervovat, a nikto uz nezisti ze preco');
+      var errorMessage = resData.errorMessage ? resData.errorMessage : 'Nepodarilo sa rezervovat, a nikto uz nezisti ze preco';
+
+      return checkMyReservations(cookieJar, date, hour, function(courtReserved) {
+        if (courtReserved) return cb('Pokoj, ihrisko pismeno ' + (courtReserved - 40) + ' mas uz davno rezervovane');
+
+        sails.log('Calling callback with errorMessage');
+        return cb(errorMessage);
+      });
     }
 
     cb(null, court);
@@ -82,7 +130,7 @@ function unReserveCourt(cookieJar, court, date, hour, cb) {
     jar: cookieJar
   }, function(err, res, body) {
     if (err) {
-      console.log(err);
+      sails.log.error(err);
       return cb(err);
     }
 
@@ -114,8 +162,6 @@ module.exports = {
 
     var match = regex.exec(req.param('time'));
 
-    console.log(match);
-
     if (match === null) {
       req.flash('error', 'Napicu datum');
       return res.redirect('/');
@@ -133,12 +179,12 @@ module.exports = {
 
       reserveCourt(cookieJar, courtTwo, requestDate, match[4], function(err, courtNumber) {
         if (err) {
-          console.log(err);
+          sails.log.error(err);
           req.flash('error', err);
           return res.redirect('/');
         }
 
-        req.flash('ok', 'Nech sa paci, mas rezervovane ihrisko ' + (courtNumber - 40));
+        req.flash('ok', 'Nech sa paci, mas rezervovane ihrisko pismeno ' + (courtNumber - 40));
         req.session.reservation = {
           username: req.param('username'),
           password: req.param('password'),
